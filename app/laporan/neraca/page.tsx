@@ -13,20 +13,16 @@ import { motion } from 'framer-motion';
 export default function NeracaPage() {
   const [data, setData] = useState<any[]>([]);
   const [filterTahun, setFilterTahun] = useState<number>(2025);
-  const [filterUnit, setFilterUnit] = useState<string>('ALL');
-  const [unitList, setUnitList] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     fetchData();
-    supabase.from('master_unit_kerja').select('*').then(({ data }) => setUnitList(data || []));
-  }, [filterTahun, filterUnit]);
+  }, [filterTahun]);
 
   async function fetchData() {
-    let query = supabase.from('vw_neraca').select('*');
+    let query = supabase.from('vw_neraca').select('*').eq('sumber', 'Realisasi');
     if (filterTahun) query = query.eq('tahun', filterTahun);
-    if (filterUnit !== 'ALL') query = query.eq('id_unit', filterUnit);
 
     const { data: result } = await query;
     if (result) setData(result);
@@ -37,9 +33,9 @@ export default function NeracaPage() {
 
   data.forEach(row => {
     const m = row.bulan;
-    monthlyData[m].aset += Number(row.total_aset);
-    monthlyData[m].liabilitas += Number(row.total_liabilitas);
-    monthlyData[m].ekuitas += Number(row.total_ekuitas);
+    if (row.kelompok === 'Aset') monthlyData[m].aset += Number(row.saldo_akhir) || 0;
+    else if (row.kelompok === 'Liabilitas') monthlyData[m].liabilitas += Number(row.saldo_akhir) || 0;
+    else if (row.kelompok === 'Ekuitas') monthlyData[m].ekuitas += Number(row.saldo_akhir) || 0;
   });
 
   const chartData = Object.values(monthlyData);

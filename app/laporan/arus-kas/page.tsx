@@ -13,20 +13,16 @@ import { motion } from 'framer-motion';
 export default function ArusKasPage() {
   const [data, setData] = useState<any[]>([]);
   const [filterTahun, setFilterTahun] = useState<number>(2025);
-  const [filterUnit, setFilterUnit] = useState<string>('ALL');
-  const [unitList, setUnitList] = useState<any[]>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     fetchData();
-    supabase.from('master_unit_kerja').select('*').then(({ data }) => setUnitList(data || []));
-  }, [filterTahun, filterUnit]);
+  }, [filterTahun]);
 
   async function fetchData() {
-    let query = supabase.from('vw_arus_kas').select('*');
+    let query = supabase.from('vw_arus_kas').select('*').eq('sumber', 'Realisasi');
     if (filterTahun) query = query.eq('tahun', filterTahun);
-    if (filterUnit !== 'ALL') query = query.eq('unit_kode', filterUnit);
 
     const { data: result } = await query;
     if (result) setData(result);
@@ -37,10 +33,14 @@ export default function ArusKasPage() {
 
   data.forEach(row => {
     const m = row.bulan;
-    monthlyData[m].operasi += Number(row.kas_operasi);
-    monthlyData[m].investasi += Number(row.kas_investasi);
-    monthlyData[m].pendanaan += Number(row.kas_pendanaan);
-    monthlyData[m].net_cash_flow += Number(row.net_cash_flow);
+    const op = Number(row.arus_kas_operasi) || 0;
+    const inv = Number(row.arus_kas_investasi) || 0;
+    const pend = Number(row.arus_kas_pendanaan) || 0;
+    
+    monthlyData[m].operasi += op;
+    monthlyData[m].investasi += inv;
+    monthlyData[m].pendanaan += pend;
+    monthlyData[m].net_cash_flow += (op + inv + pend);
   });
 
   const chartData = Object.values(monthlyData);
