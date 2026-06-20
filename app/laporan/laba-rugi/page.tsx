@@ -15,7 +15,7 @@ export default function LabaRugiPage() {
   const [unitList, setUnitList] = useState<any[]>([]);
   
   const [filterTahun, setFilterTahun] = useState<number>(2025);
-  const [filterUnit, setFilterUnit] = useState<string>('ALL');
+  const [filterUnit, setFilterUnit] = useState<string>('');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
